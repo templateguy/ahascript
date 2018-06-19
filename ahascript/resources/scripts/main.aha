@@ -1,0 +1,7 @@
+#pragma once
+
+#include <iostream>
+#inlcude <vector>
+#include <string>
+
+#define PI 180
