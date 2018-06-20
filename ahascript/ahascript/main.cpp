@@ -12,8 +12,8 @@
 
 int main(int argc, const char * argv[])
 {
-    aha::Preprocessor preprocessor("scripts/main.aha");
+    aha::pp::Preprocessor preprocessor("scripts/main.aha");
     auto preprocessed(preprocessor());
-    std::cout << preprocessed;
+    //std::cout << preprocessed;
     return 0;
 }

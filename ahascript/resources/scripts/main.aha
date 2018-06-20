@@ -2,18 +2,8 @@
 
 #include <iostream>
 
+#if defined(SOME_MACRO && SOME_OTHER_MACRO || UNIVERSAL)
+#endif
 
-namespace aha
-{
-    class Foo
-    {
-
-    };
-}
-
-
-void main()
-{
-
-}
-
+#pragma pack(push, 1)
+#pragma pack(pop)

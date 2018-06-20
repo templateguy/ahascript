@@ -9,15 +9,222 @@
 #pragma once
 
 
+#include <string>
+#include <vector>
 #include <fstream>
 #include <sstream>
-#include "Lexer.hpp"
-#include "PreprocessorToken.hpp"
 
 
-namespace aha
+namespace aha::pp::private_
 {
-    class Preprocessor
+    struct Config__
+    {
+        const std::vector <std::string> directives =
+        {
+            "#pragma",
+            "#include",
+            "#define",
+            "#undef",
+            "#if",
+            "#ifdef",
+            "#ifndef",
+            "#elif",
+            "#else",
+            "#endif",
+            "#error",
+            "#warning",
+            "#line"
+        };
+        
+        const std::vector <std::string> commands =
+        {
+            "once",
+            "defined",
+            "pack"
+        };
+        
+        const std::vector <std::string> punctuators =
+        {
+            " ",
+            ",",
+            "<",
+            ">",
+            "(",
+            ")",
+            "\\",
+            "\t",
+            "\n"
+        };
+        
+        const std::vector <std::string> operators =
+        {
+            "&&",
+            "||",
+            "!"
+        };
+        
+        static Config__& getInstance()
+        {
+            static Config__ instance;
+            return instance;
+        }
+        
+        Config__(const Config__&) = delete;
+        Config__(Config__&&) = delete;
+        const Config__& operator =(const Config__&) = delete;
+        Config__& operator =(Config__&&) = delete;
+        
+    private:
+        Config__() = default;
+    };
+    
+#define Config_ Config__::getInstance()
+    
+    class Token_ final
+    {
+    public:
+        enum class Type : uint8_t
+        {
+            None,
+            Directive,
+            Command,
+            Parameter,
+            Punctuator,
+            Operator,
+            Unknown
+        };
+        
+        Token_(const std::string& value) noexcept : value_{value}
+        {
+            identifyType_();
+        }
+        
+        inline Type getType() const noexcept
+        {
+            return type_;
+        }
+        
+        inline const std::string& getValue() const noexcept
+        {
+            return value_;
+        }
+        
+        inline void print() const noexcept
+        {
+            std::string type;
+            if(type_ == Type::None)
+                type = "None";
+            else if(type_ == Type::Directive)
+                type = "Directive";
+            else if(type_ == Type::Command)
+                type = "Command";
+            else if(type_ == Type::Punctuator)
+                type = "Punctuator";
+            else if(type_ == Type::Operator)
+                type = "Operator";
+            else
+                type = "Unknown";
+            std::cout << "Token Type: " << type << ", Value: " << value_ << std::endl;
+        }
+        
+    private:
+        void identifyType_() noexcept
+        {
+            if(std::end(Config_.directives) != std::find(std::begin(Config_.directives), std::end(Config_.directives), value_.c_str()))
+            {
+                type_ = Type::Directive;
+            }
+            else if(std::end(Config_.commands) != std::find(std::begin(Config_.commands), std::end(Config_.commands), value_.c_str()))
+            {
+                type_ = Type::Command;
+            }
+            else if(std::end(Config_.punctuators) != std::find(std::begin(Config_.punctuators), std::end(Config_.punctuators), value_.c_str()))
+            {
+                type_ = Type::Punctuator;
+            }
+            else if(std::end(Config_.operators) != std::find(std::begin(Config_.operators), std::end(Config_.operators), value_.c_str()))
+            {
+                type_ = Type::Operator;
+            }
+        }
+        
+        Type type_{Type::None};
+        const std::string value_;
+    };
+    
+    class Delimiters_ final
+    {
+    public:
+        Delimiters_()
+        {
+            static const std::string defaultDelimiters_{" ,<.>/?;:'\"[{]}\\`~@$%^*()-=+\t\r\n\0"};
+            createDelimiters_(defaultDelimiters_);
+        }
+        
+        Delimiters_(const std::string& str)
+        {
+            createDelimiters_(str);
+        }
+        
+        inline bool exists(char delimiter) const
+        {
+            auto i(std::find(delimiters_.begin(), delimiters_.end(), delimiter));
+            return i != delimiters_.end();
+        }
+        
+    private:
+        void createDelimiters_(const std::string& str) noexcept
+        {
+            for(auto ch : str)
+            {
+                delimiters_.emplace_back(ch);
+            }
+        }
+        
+        std::vector <char> delimiters_;
+    };
+    
+    class Lexer_ final
+    {
+    public:
+        Lexer_(const std::string& input)
+        {
+            lex_(input);
+        }
+        
+        inline const std::vector <Token_>& getTokens() const noexcept
+        {
+            return tokens_;
+        }
+        
+    private:
+        void lex_(const std::string& input, const Delimiters_& delimiters = Delimiters_())
+        {
+            std::string token;
+            for(auto ch : input)
+            {
+                if(delimiters.exists(ch))
+                {
+                    if(token.size())
+                    {
+                        tokens_.emplace_back(token);
+                    }
+                    token = ch;
+                    tokens_.emplace_back(token);
+                    token.clear();
+                    continue;
+                }
+                token += ch;
+            }
+        }
+        
+        std::vector <Token_> tokens_;
+    };
+}
+
+namespace aha::pp
+{
+    class Preprocessor final
     {
     public:
         Preprocessor(const std::string& fileName)
@@ -32,117 +239,29 @@ namespace aha
         
         const auto& operator ()()
         {
-            Lexer lexer(input_);
+            private_::Lexer_ lexer(input_);
             const auto& tokens(lexer.getTokens());
-            interpret_(tokens);
+            for(const auto& token : tokens)
+            {
+                token.print();
+            }
             return preprocessed_;
         }
         
-    protected:
-        void interpret_(const std::vector <std::string>& tokens)
+    private:
+        void pragma_()
         {
-            for(const auto& strToken : tokens)
-            {
-                identifyToken_(strToken);
-                auto token(identifyToken_(strToken));
-                buildCommand_(token);
-            }
+            
         }
         
-        PreprocessorToken identifyToken_(const std::string& token)
+        void include_()
         {
-            if(token == "#")        return PreprocessorToken::Hash;
-            if(token == "include")  return PreprocessorToken::Include;
-            if(token == "define")   return PreprocessorToken::Define;
-            if(token == "pragma")   return PreprocessorToken::Pragma;
-            if(token == "if")       return PreprocessorToken::If;
-            if(token == "ifdef")    return PreprocessorToken::IfDef;
-            if(token == "ifndef")   return PreprocessorToken::IfNDef;
-            if(token == "defined")  return PreprocessorToken::Defined;
-            if(token == "elif")     return PreprocessorToken::ElIf;
-            if(token == "else")     return PreprocessorToken::Else;
-            if(token == "<")        return PreprocessorToken::LeftAngleBracket;
-            if(token == ">")        return PreprocessorToken::RightAngleBracket;
-            if(token == "(")        return PreprocessorToken::LeftParentheses;
-            if(token == ")")        return PreprocessorToken::RightParentheses;
-            if(token == "\"")       return PreprocessorToken::DoubleQuote;
-            if(token == "&")        return PreprocessorToken::And;
-            if(token == "|")        return PreprocessorToken::Or;
-            if(token == "!")        return PreprocessorToken::Not;
-            return PreprocessorToken::Unknown;
+            
         }
         
-        void buildCommand_(PreprocessorToken token)
+        void define_()
         {
-            switch(token)
-            {
-                case PreprocessorToken::Hash:
-                    
-                    break;
-                    
-                case PreprocessorToken::Include:
-                    
-                    break;
-                
-                case PreprocessorToken::Define:
-                    
-                    break;
-                
-                case PreprocessorToken::Pragma:
-                    
-                    break;
-                    
-                case PreprocessorToken::If:
-                    
-                    break;
-                    
-                case PreprocessorToken::IfDef:
-                    
-                    break;
-                    
-                case PreprocessorToken::IfNDef:
-                    
-                    break;
-                    
-                case PreprocessorToken::Defined:
-                    
-                    break;
-                    
-                case PreprocessorToken::ElIf:
-                    
-                    break;
-                    
-                case PreprocessorToken::Else:
-                    
-                    break;
-                    
-                case PreprocessorToken::LeftAngleBracket:
-                    
-                    break;
-                    
-                case PreprocessorToken::RightAngleBracket:
-                    
-                    break;
-                    
-                case PreprocessorToken::LeftParentheses:
-                    
-                    break;
-                    
-                case PreprocessorToken::RightParentheses:
-                    
-                    break;
-                    
-                case PreprocessorToken::DoubleQuote:
-                    
-                    break;
-                   
-                case PreprocessorToken::Unknown:
-                    
-                    break;
-                    
-                default:
-                    break;
-            }
+            
         }
         
         std::string input_;
