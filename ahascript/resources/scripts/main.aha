@@ -1,7 +1,19 @@
 #pragma once
 
 #include <iostream>
-#inlcude <vector>
-#include <string>
 
-#define PI 180
+
+namespace aha
+{
+    class Foo
+    {
+
+    };
+}
+
+
+void main()
+{
+
+}
+

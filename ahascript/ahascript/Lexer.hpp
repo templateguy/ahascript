@@ -9,7 +9,6 @@
 #pragma once
 
 
-#include <iostream>
 #include "Delimiters.hpp"
 
 
@@ -38,14 +37,6 @@ namespace aha
         inline const std::vector <std::string>& getTokens() const
         {
             return tokens_;
-        }
-        
-        void print() const
-        {
-            for(const auto& token : tokens_)
-            {
-                std::cout << token << std::endl;
-            }
         }
         
     protected:

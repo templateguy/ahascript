@@ -28,6 +28,8 @@
 		AF8D7E8F20D93AAF00DA0110 /* Delimiters.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Delimiters.hpp; sourceTree = "<group>"; };
 		AF8D7E9020D93FE400DA0110 /* Lexer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Lexer.hpp; sourceTree = "<group>"; };
 		AF8D7E9320D9556700DA0110 /* main.aha */ = {isa = PBXFileReference; lastKnownFileType = text; path = main.aha; sourceTree = "<group>"; };
+		AF8D7E9420D9607200DA0110 /* Preprocessor.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Preprocessor.hpp; sourceTree = "<group>"; };
+		AF8D7E9520D96A5400DA0110 /* PreprocessorToken.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = PreprocessorToken.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,6 +66,8 @@
 				AF8D7E8820D93A5500DA0110 /* main.cpp */,
 				AF8D7E8F20D93AAF00DA0110 /* Delimiters.hpp */,
 				AF8D7E9020D93FE400DA0110 /* Lexer.hpp */,
+				AF8D7E9420D9607200DA0110 /* Preprocessor.hpp */,
+				AF8D7E9520D96A5400DA0110 /* PreprocessorToken.hpp */,
 			);
 			path = ahascript;
 			sourceTree = "<group>";
